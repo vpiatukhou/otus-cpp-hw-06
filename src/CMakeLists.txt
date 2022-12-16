@@ -1,0 +1,20 @@
+add_executable(matrix main.cpp)
+
+set_target_properties(matrix PROPERTIES 
+    CMAKE_CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON
+)
+
+#BEGIN release
+install(TARGETS matrix RUNTIME DESTINATION bin)
+
+set(CPACK_GENERATOR DEB)
+
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+
+set(CPACK_PACKAGE_CONTACT example@example.com)
+
+include(CPack)
+#END
