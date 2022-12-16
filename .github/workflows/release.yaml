@@ -36,9 +36,3 @@ jobs:
           asset_path: ./matrix-0.0.${{ github.run_number }}-Linux.deb
           asset_name: matrix-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
-      - name: Generate Documentation
-        id: generate-documentation
-        uses: actions/doxygen-github-pages-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          folder: docs/html
