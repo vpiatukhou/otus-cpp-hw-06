@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Dimension.h"
+#include "MatrixForwardIterator.h"
 
 #include <unordered_map>
 #include <memory>
@@ -8,87 +9,51 @@
 
 namespace Homework {
 
+	/**
+	 * @brief The matrix is implemented in the following way.
+	 * 
+	 * E.g. there is a code:
+	 * 
+	 * Matrix<int, -1, 5> matrix; //a 5D matrix
+	 * 
+	 * The following classes will be generated:
+	 * 
+	 * Matrix<...>
+	 * Dimension<..., 4, ...> // "4" is a number of child Dimensions
+	 * Dimension<..., 3, ...>
+	 * Dimension<..., 2, ...>
+	 * Dimension<..., 1, ...>
+	 * ElementHolder
+	 * 
+	 * A Matrix class contains Dimensions which contain other Dimensions and so on.
+	 * 
+	 * For more information please see the following methods:
+	 * 
+	 * //get and create an element
+	 * BaseDimension::operator[]
+	 * BaseDimension::addNewElementToData()
+	 * 
+	 * //remove an element
+	 * BaseDimension::erase()
+	 * 
+	 * //iterate all elements
+	 * Matrix::begin()
+	 * Matrix::end()
+	 * 
+	 * @tparam T 					a type of element of the matrix. It can be any primitive or an object type.
+	 * @tparam defaultValue 		a default value which is returned if a requested element doesn't exist
+	 * @tparam numberOfDimensions 	a number of dimensions. E.g. numberOfDimensions = 5 for 5D matrix.
+	 */
 	template<typename T, T defaultValue, size_t numberOfDimensions = 2>
 	class Matrix : public BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>> {
 	public:
-		class ForwardIterator {
-		private:
-			using iterator_category = std::forward_iterator_tag;
-			using difference_type = std::ptrdiff_t;
-			using value_type = typename MatrixElementWithIndiciesCreator<T, numberOfDimensions>::Type;
-			using pointer = value_type*;
-			using reference = value_type&;
-
-			using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>>::DataType::iterator;
-
-			DataTypeIterator dataBeginIterator;
-			DataTypeIterator dataEndIterator;
-			std::unique_ptr<IDimensionIterator<value_type>> dimensionIterator = nullptr;
-			value_type currentValue;
-
-		public:
-			void populateElementWithIndicies() {
-				std::get<0>(currentValue) = dataBeginIterator->first;
-				dimensionIterator->populateElementWithIndicies(currentValue);
-			}
-
-			ForwardIterator(DataTypeIterator dataBeginIterator_, DataTypeIterator dataEndIterator_)
-				: dataBeginIterator(dataBeginIterator_), dataEndIterator(dataEndIterator_) {
-				if (dataBeginIterator != dataEndIterator) {
-					dimensionIterator = dataBeginIterator->second->begin();
-					populateElementWithIndicies();
-				}
-			}
-
-			reference operator*() {
-				return currentValue;
-			}
-
-			ForwardIterator& operator++() {
-				if (dataBeginIterator == dataEndIterator) {
-					return *this;
-				}
-				if (dimensionIterator->next()) {
-					populateElementWithIndicies();
-				} else {
-					dimensionIterator = nullptr;
-					++dataBeginIterator;
-					if (dataBeginIterator != dataEndIterator) {
-						dimensionIterator = dataBeginIterator->second->begin();
-						populateElementWithIndicies();
-					}
-				}
-				return *this;
-			}
-
-			ForwardIterator operator++(int) {
-				ForwardIterator iterator = *this;
-				++(*this);
-				return iterator;
-			}
-
-			friend bool operator==(const ForwardIterator& a, const ForwardIterator& b) {
-				return a.dataBeginIterator == b.dataBeginIterator && a.dimensionIterator == b.dimensionIterator;
-			}
-
-			friend bool operator!=(const ForwardIterator& a, const ForwardIterator& b) {
-				return !(a == b);
-			}
-		};
+		using IteratorValue = typename MatrixElementWithIndicesCreator<T, numberOfDimensions>::Type;
+		using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>>::DataType::iterator;
+		using ForwardIterator = MatrixForwardIterator<IteratorValue, DataTypeIterator>;
 
 		Matrix() = default;
 
-		~Matrix() = default;
-
-		Matrix(const Matrix&) = delete;
-
-		Matrix(Matrix&&) = delete;
-
-		Matrix& operator=(const Matrix&) = delete;
-
-		Matrix& operator=(Matrix&&) = delete;
-
-		void addElementToMatrix() override {
+		void addNewElementToData() override {
 			if (this->newElement != nullptr) {
 				this->data[this->newElementIndex] = std::move(this->newElement);
 				this->newElement = nullptr;

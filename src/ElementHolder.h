@@ -4,18 +4,20 @@
 
 namespace Homework {
 
-	/// <summary>
-	/// Holds an element of the matrix.
-	/// </summary>
-	/// <typeparam name="T">A type of element. It can be any primitive or object type</typeparam>
+	/**
+	 * @brief Holds an element of the matrix.
+	 * 
+	 * @tparam T            - a type of the element. It can be any primitive or object type
+	 * @tparam defaultValue - a default value of the element
+	 */
 	template<typename T, T defaultValue>
 	class ElementHolder {
 	private:
 		using ParentDimension = BaseDimension<ElementHolder>;
 
-		ParentDimension& parentDimension; //a dimension which stores this element
+		ParentDimension& parentDimension; //a dimension which holds this element
 		T value = defaultValue;
-		size_t currentIndex;
+		size_t currentIndex; //an index of the current element in the dimension
 
 	public:
 		ElementHolder(ParentDimension& parentDimension_, size_t currentIndex_) 
@@ -38,7 +40,7 @@ namespace Homework {
 				parentDimension.erase(currentIndex);
 			} else {
 				//A new value has been assigned to ElementHolder. Inform the parent dimension about this.
-				parentDimension.addElementToMatrix();
+				parentDimension.addNewElementToData();
 			}
 			return *this;
 		}

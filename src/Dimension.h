@@ -7,24 +7,36 @@
 
 namespace Homework {
 
-	/// <summary>
-	/// A dimension of the matrix. It contains other dimensions.
-	/// 
-	/// If a matrix contains more than two dimensions, a new dimension class will be generated for an each dimension.
-	/// 
-	/// For a dimension which contains elements please see the specialization of this class below.
-	/// </summary>
-	/// <typeparam name="T">a type of elements of the matrix</typeparam>
-	/// <typeparam name="defaultValue">a default value of elements</typeparam>
-	/// <typeparam name="numberOfDimensions">a number of dimensions within this dimension</typeparam>
-	/// <typeparam name="matrixNumberOfDimensions">a total number of dimensions of the matrix</typeparam>
+	/**
+	 * @brief A dimension of the matrix.
+	 * 
+	 * A single specialization is generated for an each dimension in the matrix.
+	 * 
+	 * E.g. for 5D matrix, the following classes will be generated:
+	 * 
+	 * Dimension<T, defaultValue, 4, ...> 
+	 * Dimension<T, defaultValue, 3, ...>
+	 * Dimension<T, defaultValue, 2, ...>
+	 * Dimension<T, defaultValue, 1, ...>
+	 * 
+	 * An each of the classes (except the last one) contains other dimensions.
+	 * 
+	 * The last one contains elements of the matrix. Please see the specialization Dimension<T, defaultValue, 1, ...> below in this file.
+	 * 
+	 * @tparam T 						- a type of elements of the matrix
+	 * @tparam defaultValue 			- a default value of elements of the matrix
+	 * @tparam numberOfDimensions 		- a number of dimensions within this dimension
+	 * @tparam matrixNumberOfDimensions - a total number of dimensions of the matrix
+	 */
 	template<typename T, T defaultValue, size_t numberOfDimensions, size_t matrixNumberOfDimensions>
 	class Dimension : public BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, matrixNumberOfDimensions>> {
 	private:
 		using ParentDimension = BaseDimension<Dimension<T, defaultValue, numberOfDimensions, matrixNumberOfDimensions>>;
-		using ElementWithIndicies = typename MatrixElementWithIndiciesCreator<T, matrixNumberOfDimensions>::Type;
+		using ElementWithIndices = typename MatrixElementWithIndicesCreator<T, matrixNumberOfDimensions>::Type;
 
+		//a dimension which holds this dimenstion
 		ParentDimension& parentDimension;
+		//an index of this dimension in the parent dimension
 		size_t currentIndex = 0;
 
 	public:
@@ -33,21 +45,11 @@ namespace Homework {
 
 		Dimension() = default;
 
-		~Dimension() = default;
-
-		Dimension(const Dimension&) = delete;
-
-		Dimension(Dimension&&) = delete;
-
-		Dimension& operator=(const Dimension&) = delete;
-
-		Dimension& operator=(Dimension&&) = delete;
-
-		void addElementToMatrix() override {
+		void addNewElementToData() override {
 			if (this->newElement != nullptr) {
 				this->data[this->newElementIndex] = std::move(this->newElement);
 				this->newElement = nullptr;
-				parentDimension.addElementToMatrix();
+				parentDimension.addNewElementToData();
 			}
 		}
 
@@ -66,31 +68,32 @@ namespace Homework {
 			return totalSize;
 		}
 
-		using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, matrixNumberOfDimensions>>::DataType::iterator;
+		std::unique_ptr<DimensionIterator<ElementWithIndices>> begin() {
+			using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, matrixNumberOfDimensions>>::DataType::iterator;
 
-		std::unique_ptr<IDimensionIterator<ElementWithIndicies>> begin() {
-			return std::make_unique<DimensionIterator<T, DataTypeIterator, ElementWithIndicies, numberOfDimensions, matrixNumberOfDimensions> >(
+			return std::make_unique<DimensionIteratorImpl<T, DataTypeIterator, ElementWithIndices, numberOfDimensions, matrixNumberOfDimensions> >(
 				this->data.begin(), this->data.end());
 		}
 	};
 
-	/// <summary>
-	/// This specialization of Dimension class represents the most deepest dimension of the matrix. 
-	/// 
-	/// E.g. there is a matrix:
-	/// 
-	/// matrix[5][2][3] = 100
-	/// 
-	/// This class represents a dimension with index "2" which contains the element with value "100".
-	/// </summary>
-	/// <typeparam name="T">a type of elements of the matrix</typeparam>
-	/// <typeparam name="defaultValue">a default value of elements</typeparam>
-	/// <typeparam name="matrixNumberOfDimensions">a total number of dimensions of the matrix</typeparam>
+	/**
+	 * @brief This specialization of Dimension class represents the most deepest dimension of the matrix. 
+	 * 
+	 * E.g. there is a matrix:
+	 * 
+	 * matrix[5][2][3] = 100
+	 * 
+	 * This class represents a dimension with index "2" which contains the element with value "100".
+	 * 
+	 * @tparam T 						- a type of elements of the matrix
+	 * @tparam defaultValue 			- a default value of elements
+	 * @tparam matrixNumberOfDimensions - a total number of dimensions of the matrix
+	 */
 	template<typename T, T defaultValue, size_t matrixNumberOfDimensions>
 	struct Dimension<T, defaultValue, 1, matrixNumberOfDimensions> : public BaseDimension<ElementHolder<T, defaultValue>> {
 	private:
 		using ParentDimension = BaseDimension<Dimension<T, defaultValue, 1, matrixNumberOfDimensions>>;
-		using ElementWithIndicies = typename MatrixElementWithIndiciesCreator<T, matrixNumberOfDimensions>::Type;
+		using ElementWithIndices = typename MatrixElementWithIndicesCreator<T, matrixNumberOfDimensions>::Type;
 
 		ParentDimension& parentDimension = nullptr;
 		size_t currentIndex = 0;
@@ -102,21 +105,11 @@ namespace Homework {
 
 		Dimension() = default;
 
-		~Dimension() = default;
-
-		Dimension(const Dimension&) = delete;
-
-		Dimension(Dimension&&) = delete;
-
-		Dimension& operator=(const Dimension&) = delete;
-
-		Dimension& operator=(Dimension&&) = delete;
-
-		void addElementToMatrix() override {
+		void addNewElementToData() override {
 			if (this->newElement != nullptr) {
 				this->data[this->newElementIndex] = std::move(this->newElement);
 				this->newElement = nullptr;
-				parentDimension.addElementToMatrix();
+				parentDimension.addNewElementToData();
 			}
 		}
 
@@ -131,10 +124,10 @@ namespace Homework {
 			return this->data.size();
 		}
 
-		using DataTypeIterator = typename BaseDimension<ElementHolder<T, defaultValue>>::DataType::iterator;
+		std::unique_ptr<DimensionIterator<ElementWithIndices>> begin() {
+			using DataTypeIterator = typename BaseDimension<ElementHolder<T, defaultValue>>::DataType::iterator;
 
-		std::unique_ptr<IDimensionIterator<ElementWithIndicies>> begin() {
-			return std::make_unique<DimensionIterator<T, DataTypeIterator, ElementWithIndicies, 1, matrixNumberOfDimensions>>(
+			return std::make_unique<DimensionIteratorImpl<T, DataTypeIterator, ElementWithIndices, 1, matrixNumberOfDimensions>>(
 				this->data.begin(), this->data.end());
 		}
 	};
