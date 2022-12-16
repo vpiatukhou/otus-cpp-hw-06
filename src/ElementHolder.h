@@ -7,7 +7,7 @@ namespace Homework {
 	/**
 	 * @brief Holds an element of the matrix.
 	 * 
-	 * @tparam T            - a type of the element. It can be any primitive or object type
+	 * @tparam T            - a type of the element
 	 * @tparam defaultValue - a default value of the element
 	 */
 	template<typename T, T defaultValue>

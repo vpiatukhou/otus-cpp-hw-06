@@ -40,11 +40,11 @@ namespace Homework {
 	 * Matrix::begin()
 	 * Matrix::end()
 	 * 
-	 * @tparam T 					a type of element of the matrix. It can be any primitive or an object type.
-	 * @tparam defaultValue 		a default value which is returned if a requested element doesn't exist
+	 * @tparam T 					a type of element of the matrix. Only integral types are supported at the moment.
+	 * @tparam defaultValue 		a default value which is returned if a requested element doesn't exist.
 	 * @tparam numberOfDimensions 	a number of dimensions. E.g. numberOfDimensions = 5 for 5D matrix.
 	 */
-	template<typename T, T defaultValue, size_t numberOfDimensions = 2>
+	template<typename T, T defaultValue = 0, size_t numberOfDimensions = 2>
 	class Matrix : public BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>> {
 	public:
 		using IteratorValue = typename MatrixElementWithIndicesCreator<T, numberOfDimensions>::Type;
