@@ -14,6 +14,7 @@ namespace Homework {
 	protected:
 		using ElementType = T; //we create alias for T in order to re-use it in subclasses
 		using DataType = std::unordered_map<size_t, std::unique_ptr<ElementType>>;
+
 		DataType data;
 		std::unique_ptr<ElementType> newElement = nullptr;
 		size_t newElementIndex = 0;

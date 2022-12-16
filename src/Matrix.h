@@ -19,7 +19,7 @@ namespace Homework {
 			using pointer = value_type*;
 			using reference = value_type&;
 
-			using DataTypeIterator = typename DataType::iterator;
+			using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>>::DataType::iterator;
 
 			DataTypeIterator dataBeginIterator;
 			DataTypeIterator dataEndIterator;
@@ -89,30 +89,30 @@ namespace Homework {
 		Matrix& operator=(Matrix&&) = delete;
 
 		void addElementToMatrix() override {
-			if (newElement != nullptr) {
-				data[newElementIndex] = std::move(newElement);
-				newElement = nullptr;
+			if (this->newElement != nullptr) {
+				this->data[this->newElementIndex] = std::move(this->newElement);
+				this->newElement = nullptr;
 			}
 		}
 
 		void erase(size_t index) override {
-			data.erase(index);
+			this->data.erase(index);
 		}
 
 		size_t size() const {
 			size_t totalSize = 0;
-			for (const auto& indexAndValue : data) {
+			for (const auto& indexAndValue : this->data) {
 				totalSize += indexAndValue.second->size();
 			}
 			return totalSize;
 		}
 
 		ForwardIterator begin() {
-			return ForwardIterator(data.begin(), data.end());
+			return ForwardIterator(this->data.begin(), this->data.end());
 		}
 
 		ForwardIterator end() {
-			return ForwardIterator(data.end(), data.end());
+			return ForwardIterator(this->data.end(), this->data.end());
 		}
 	};
 
