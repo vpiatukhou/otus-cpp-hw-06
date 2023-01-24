@@ -4,8 +4,7 @@
 using namespace std;
 using namespace Homework;
 
-int main()
-{
+int main() {
 	const size_t matrixSize = 10;
 	Matrix<int, -1> matrix;
 	for (size_t i = 0; i < matrixSize; ++i) {
