@@ -56,3 +56,16 @@ TEST(matrixTest, assignElement) {
     //then
     ASSERT_EQ(value, static_cast<int>(matrix[100][100][100]));
 }
+
+TEST(matrixTest, longElementType) {
+    //given
+    Matrix<long, 10> matrix;
+    long value = 20;
+
+    //when
+    matrix[100][100] = value;
+
+    //then
+    ASSERT_EQ(value, static_cast<double>(matrix[100][100]));
+    ASSERT_EQ(10, static_cast<double>(matrix[100][101]));
+}

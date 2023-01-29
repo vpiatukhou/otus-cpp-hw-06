@@ -13,7 +13,7 @@ int main() {
 		matrix[i][secondaryDiagonalIndex] = secondaryDiagonalIndex;
 	}
 
-	cout << "Cells in the range[1..8][1..8]:" << endl;
+	cout << "Elements in the range[1..8][1..8]:" << endl;
 	for (size_t i = 1; i < matrixSize - 1; ++i) {
 		for (size_t j = 1; j < matrixSize - 1; ++j) {
 			cout << matrix[i][j] << ' ';
@@ -41,6 +41,7 @@ int main() {
 	cout << "A canonical form of '=' operator:" << endl;
 	((matrix[100][100] = 314) = 0) = 217;
 	cout << matrix[100][100] << endl;
+	cout << endl;
 
 	cout << "5D matrix" << endl;
 	Matrix<int, -1, 5> matrix5d;
