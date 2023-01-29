@@ -30,7 +30,7 @@ namespace Homework {
 		using ElementType = typename DataTypeCreator<T, defaultValue, dimensions>::ElementType;
 		//a container which holds the inner matrices
 		using DataType = typename DataTypeCreator<T, defaultValue, dimensions>::DataType;
-		using Iterator = typename MatrixForwardIterator<T, defaultValue, dimensions>;
+		using Iterator = MatrixForwardIterator<T, defaultValue, dimensions>;
 
 		BaseMatrix* parent = nullptr;
 		std::size_t currentIndex = 0;
@@ -104,7 +104,7 @@ namespace Homework {
 	class Matrix<T, defaultValue, 1> : public BaseMatrix {
 		using ElementType = typename DataTypeCreator<T, defaultValue, 1>::ElementType;
 		using DataType = typename DataTypeCreator<T, defaultValue, 1>::DataType;
-		using Iterator = typename MatrixForwardIterator<T, defaultValue, 1>;
+		using Iterator = MatrixForwardIterator<T, defaultValue, 1>;
 
 		BaseMatrix* parent = nullptr;
 		std::size_t currentIndex = 0;
