@@ -1,68 +1,83 @@
 #pragma once
 
-#include "Dimension.h"
+#include "ElementHolder.h"
 #include "MatrixForwardIterator.h"
+#include "MatrixType.h"
+#include "MatrixUtils.h"
 
-#include <unordered_map>
-#include <memory>
-#include <tuple>
+#include <stdexcept>
 
 namespace Homework {
 
 	/**
-	 * @brief The matrix is implemented in the following way.
+	 * An N-dimensional infinite sparse matrix.
 	 * 
-	 * E.g. there is a code:
+	 * Usage:
 	 * 
-	 * Matrix<int, -1, 5> matrix; //a 5D matrix
+	 * Matrix<int, -1, 3> m;
+	 * m[3][5][2] = 10;
+	 * int e1 = m[3][5][2];	   // e1 = 10
+	 * int e2 = m[3][5][100];  // e2 = -1
 	 * 
-	 * The following classes will be generated:
-	 * 
-	 * Matrix<...>
-	 * Dimension<..., 4, ...> // "4" is a number of child Dimensions
-	 * Dimension<..., 3, ...>
-	 * Dimension<..., 2, ...>
-	 * Dimension<..., 1, ...>
-	 * ElementHolder
-	 * 
-	 * A Matrix class contains Dimensions which contain other Dimensions and so on.
-	 * 
-	 * For more information please see the following methods:
-	 * 
-	 * //get and create an element
-	 * BaseDimension::operator[]
-	 * BaseDimension::addNewElementToData()
-	 * 
-	 * //remove an element
-	 * BaseDimension::erase()
-	 * 
-	 * //iterate all elements
-	 * Matrix::begin()
-	 * Matrix::end()
-	 * 
-	 * @tparam T 					a type of element of the matrix. It can be any primitive or an object type.
-	 * @tparam defaultValue 		a default value which is returned if a requested element doesn't exist
-	 * @tparam numberOfDimensions 	a number of dimensions. E.g. numberOfDimensions = 5 for 5D matrix.
+	 * @param T				- a type of an element of the matrix. At the moment only integral types are supported.
+	 * @param defaultValue	- this value will be returned if there is no any element with the given indices
+	 * @param dimensions	- a number of dimensions
 	 */
-	template<typename T, T defaultValue, size_t numberOfDimensions = 2>
-	class Matrix : public BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>> {
-	public:
-		using IteratorValue = typename MatrixElementWithIndicesCreator<T, numberOfDimensions>::Type;
-		using DataTypeIterator = typename BaseDimension<Dimension<T, defaultValue, numberOfDimensions - 1, numberOfDimensions>>::DataType::iterator;
-		using ForwardIterator = MatrixForwardIterator<IteratorValue, DataTypeIterator>;
+	template<typename T, T defaultValue, std::size_t dimensions = 2>
+	class Matrix : public BaseMatrix {
+	private:
+		//an inner matrix with one less number of dimensions.
+		using ElementType = typename DataTypeCreator<T, defaultValue, dimensions>::ElementType;
+		//a container which holds the inner matrices
+		using DataType = typename DataTypeCreator<T, defaultValue, dimensions>::DataType;
+		using Iterator = typename MatrixForwardIterator<T, defaultValue, dimensions>;
 
+		BaseMatrix* parent = nullptr;
+		std::size_t currentIndex = 0;
+
+		DataType data;
+
+		std::unique_ptr<ElementType> newElement = nullptr;
+
+	public:
 		Matrix() = default;
 
+		Matrix(BaseMatrix* parent_, size_t currentIndex_) : parent(parent_), currentIndex(currentIndex_) {
+		}
+
 		void addNewElementToData() override {
-			if (this->newElement != nullptr) {
-				this->data[this->newElementIndex] = std::move(this->newElement);
-				this->newElement = nullptr;
+			if (newElement != nullptr) {
+				auto index = newElement->getCurrentIndex();
+				data[index] = std::move(newElement);
+				newElement = nullptr;
+				if (parent != nullptr) {
+					parent->addNewElementToData();
+				}
 			}
 		}
 
-		void erase(size_t index) override {
-			this->data.erase(index);
+		void erase(std::size_t index) override {
+			data.erase(index);
+			if (data.empty()) {
+				parent->erase(currentIndex);
+			}
 		}
+
+		/**
+		 * Returns an element (an inner matrix) with the given index. 
+		 * If there is no element with such index, a new one will be created.
+		 * 
+		 * @return an inner matrix with the given index
+		 */
+		ElementType& operator[](std::size_t index) {
+			if (data.find(index) == data.end()) {
+				//If an element doesn't exist, we create a new one and save it in the variable.
+				//The element will be added to the matrix later using addNewElementToData().
+				newElement = std::make_unique<ElementType>(this, index);
+				return *newElement;
+			}
+			return *(data[index]);
+		};
 
 		size_t size() const {
 			size_t totalSize = 0;
@@ -72,13 +87,77 @@ namespace Homework {
 			return totalSize;
 		}
 
-		ForwardIterator begin() {
-			return ForwardIterator(this->data.begin(), this->data.end());
+		std::size_t getCurrentIndex() const {
+			return currentIndex;
 		}
 
-		ForwardIterator end() {
-			return ForwardIterator(this->data.end(), this->data.end());
+		Iterator begin() {
+			return Iterator(data.begin(), data.end());
+		}
+
+		Iterator end() {
+			return Iterator(data.end(), data.end());
 		}
 	};
 
+	template<typename T, T defaultValue>
+	class Matrix<T, defaultValue, 1> : public BaseMatrix {
+		using ElementType = typename DataTypeCreator<T, defaultValue, 1>::ElementType;
+		using DataType = typename DataTypeCreator<T, defaultValue, 1>::DataType;
+		using Iterator = typename MatrixForwardIterator<T, defaultValue, 1>;
+
+		BaseMatrix* parent = nullptr;
+		std::size_t currentIndex = 0;
+
+		DataType data;
+		std::unique_ptr<ElementType> newElement = nullptr;
+
+	public:
+		Matrix() = default;
+
+		Matrix(BaseMatrix* parent_, std::size_t currentIndex_) : parent(parent_), currentIndex(currentIndex_) {
+		}
+
+		void addNewElementToData() override {
+			if (newElement != nullptr) {
+				auto index = newElement->getCurrentIndex();
+				data[index] = std::move(newElement);
+				newElement = nullptr;
+				parent->addNewElementToData();
+			}
+		}
+
+		void erase(std::size_t index) override {
+			data.erase(index);
+			if (data.empty()) {
+				parent->erase(currentIndex);
+			}
+		}
+
+		ElementType& operator[](size_t index) {
+			if (data.find(index) == data.end()) {
+				//If an element doesn't exist, we create a new one and save it in the variable.
+				//The element will be added to the matrix later using addNewElementToData().
+				newElement = std::make_unique<ElementType>(*this, index);
+				return *newElement;
+			}
+			return *(data[index]);
+		};
+
+		size_t size() const {
+			return data.size();
+		}
+
+		std::size_t getCurrentIndex() const {
+			return currentIndex;
+		}
+
+		Iterator begin() {
+			return Iterator(data.begin(), data.end());
+		}
+
+		Iterator end() {
+			return Iterator(data.end(), data.end());
+		}
+	};
 };

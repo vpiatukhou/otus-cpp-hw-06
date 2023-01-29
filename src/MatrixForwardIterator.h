@@ -1,43 +1,77 @@
 #pragma once
 
-#include "DimensionIterator.h"
+#include "MatrixUtils.h"
 
-#include <iterator>
-#include <memory>
+#include <cstddef>
+#include <tuple>
 
 namespace Homework {
 
 	/**
-	 * @brief Iterates though all elements of the matrix.
+	 * The struct creates a type of a value which is returned by MatrixForwardIterator.
+	 *
+	 * The type is "tuple<size_t, size_t, size_t, ..., T>".
 	 * 
-	 * @tparam ValueType 		- a type of an element of the matrix
-	 * @tparam DataTypeIterator - BaseDimension::DataType::iterator
+	 * The number of size_t equals to the number of dimensions.
+	 *
+	 * @param T		     - a type of an element of the matrix
+	 * @param dimensions - a number of dimensions
+	 * @param IndexTypes - a list of size_t parameters. A new parameter is added with an each iteration.
 	 */
-    template<class ValueType, class DataTypeIterator>
-    class MatrixForwardIterator {
+	template<typename T, std::size_t dimensions, typename...IndexTypes>
+	struct MatrixIteratorValueTypeCreator {
+		using Type = typename MatrixIteratorValueTypeCreator<T, dimensions - 1, std::size_t, IndexTypes...>::Type;
+	};
+
+	template<typename T, typename...IndexTypes>
+	struct MatrixIteratorValueTypeCreator<T, 0, IndexTypes...> {
+		using Type = std::tuple<IndexTypes..., T>;
+	};
+
+	/**
+	 * Iterates though all elements of all dimensions of the matrix.
+	 *
+	 * @param T 	       - a type of an element of the matrix
+	 * @param defaultValue - a default value
+	 * @param dimensions   - a number of dimensions
+	 */
+	template<typename T, T defaultValue, std::size_t dimensions>
+	class MatrixForwardIterator {
 	private:
+		using IteratorValue = typename MatrixIteratorValueTypeCreator<T, dimensions>::Type;
+		using DataIterator = typename DataTypeCreator<T, defaultValue, dimensions>::DataType::iterator;
+
 		using iterator_category = std::forward_iterator_tag;
 		using difference_type = std::ptrdiff_t;
-		using value_type = ValueType;
+		using value_type = IteratorValue;
 		using pointer = value_type*;
 		using reference = value_type&;
 
-		DataTypeIterator dataBeginIterator;
-		DataTypeIterator dataEndIterator;
-		std::unique_ptr<DimensionIterator<value_type>> dimensionIterator = nullptr;
-        value_type currentValue;
+		DataIterator dataIterator;
+		DataIterator dataEndIterator;
+
+		MatrixForwardIterator<T, defaultValue, dimensions - 1> innerMatrixIterator;
+
+		value_type currentValue;
 
 	public:
-		void populateElementWithIndices() {
-			std::get<0>(currentValue) = dataBeginIterator->first;
-			dimensionIterator->populateElementWithIndices(currentValue);
+		void updateCurrentValue() {
+			std::tuple<std::size_t> currentIndex = dataIterator->first;
+			currentValue = std::tuple_cat(currentIndex, *innerMatrixIterator);
 		}
 
-		MatrixForwardIterator(DataTypeIterator dataBeginIterator_, DataTypeIterator dataEndIterator_)
-			: dataBeginIterator(dataBeginIterator_), dataEndIterator(dataEndIterator_) {
-	    	if (dataBeginIterator != dataEndIterator) {
-				dimensionIterator = dataBeginIterator->second->begin();
-				populateElementWithIndices();
+		void setUpInnerMatrixIterator() {
+			innerMatrixIterator = dataIterator->second->begin();
+		}
+
+		MatrixForwardIterator() {
+		}
+
+		MatrixForwardIterator(const DataIterator& dataBeginIterator_, const DataIterator& dataEndIterator_)
+			: dataIterator(dataBeginIterator_), dataEndIterator(dataEndIterator_) {
+			if (dataIterator != dataEndIterator) {
+				setUpInnerMatrixIterator();
+				updateCurrentValue();
 			}
 		}
 
@@ -46,18 +80,17 @@ namespace Homework {
 		}
 
 		MatrixForwardIterator& operator++() {
-			if (dataBeginIterator == dataEndIterator) {
-				return *this;
-			}
-			if (dimensionIterator->next()) {
-				populateElementWithIndices();
-			} else {
-				dimensionIterator = nullptr;
-				++dataBeginIterator;
-				if (dataBeginIterator != dataEndIterator) {
-					dimensionIterator = dataBeginIterator->second->begin();
-					populateElementWithIndices();
+			if (innerMatrixIterator.hasNext()) {
+				++innerMatrixIterator;
+				if (innerMatrixIterator.hasNext()) {
+					updateCurrentValue();
+					return *this;
 				}
+			}
+			++dataIterator;
+			if (hasNext()) {
+				setUpInnerMatrixIterator();
+				updateCurrentValue();
 			}
 			return *this;
 		}
@@ -65,16 +98,100 @@ namespace Homework {
 		MatrixForwardIterator operator++(int) {
 			MatrixForwardIterator iterator = *this;
 			++(*this);
-            return iterator;
+			return iterator;
+		}
+
+		bool hasNext() const {
+			return innerMatrixIterator.hasNext() || dataIterator != dataEndIterator;
 		}
 
 		friend bool operator==(const MatrixForwardIterator& a, const MatrixForwardIterator& b) {
-			return a.dataBeginIterator == b.dataBeginIterator && a.dimensionIterator == b.dimensionIterator;
+			return a.dataIterator == b.dataIterator && ((a.dataIterator == a.dataEndIterator) || (a.innerMatrixIterator == b.innerMatrixIterator));
 		}
 
-    	friend bool operator!=(const MatrixForwardIterator& a, const MatrixForwardIterator& b) {
+		friend bool operator!=(const MatrixForwardIterator& a, const MatrixForwardIterator& b) {
 			return !(a == b);
 		}
-    };
+	};
+
+	/**
+	 * @brief Iterates though all elements of the matrix.
+	 *
+	 * @tparam ValueType 		- a type of an element of the matrix
+	 * @tparam DataTypeIterator - BaseDimension::DataType::iterator
+	 */
+	 //template<class IteratorValue, class InnerIteratorValue, class DataIterator>
+	template<typename T, T defaultValue>
+	class MatrixForwardIterator<T, defaultValue, 1> {
+	private:
+		using IteratorValue = typename MatrixIteratorValueTypeCreator<T, 1>::Type;
+		using DataIterator = typename DataTypeCreator<T, defaultValue, 1>::DataType::iterator;
+
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = IteratorValue;
+		using pointer = value_type*;
+		using reference = value_type&;
+
+		DataIterator dataIterator;
+		DataIterator dataEndIterator;
+
+		value_type currentValue;
+
+	public:
+		/**
+		 * @brief Fills in two last fields in the given tuple: the value of the element and its last index.
+		 *
+		 * E.g. if matrix[5][3] = 20, the two last elements of the given tuple will contain 3 and 20.
+		 *
+		 * @param elementWithIndices - a tuple which contains information about element
+		 */
+		void updateCurrentValue() {
+			//an index of the element
+			std::get<0>(currentValue) = dataIterator->first;
+			//a value of the element
+			std::get<1>(currentValue) = (*(dataIterator->second)).getValue();
+		}
+
+		MatrixForwardIterator() {
+		}
+
+		MatrixForwardIterator(const DataIterator& dataBeginIterator_, const DataIterator& dataEndIterator_)
+			: dataIterator(dataBeginIterator_), dataEndIterator(dataEndIterator_) {
+			if (dataIterator != dataEndIterator) {
+				updateCurrentValue();
+			}
+		}
+
+		reference operator*() {
+			return currentValue;
+		}
+
+		MatrixForwardIterator& operator++() {
+			++dataIterator;
+			if (hasNext()) {
+				updateCurrentValue();
+			}
+			return *this;
+		}
+
+		MatrixForwardIterator operator++(int) {
+			MatrixForwardIterator iterator = *this;
+			++(*this);
+			return iterator;
+		}
+
+		bool hasNext() const {
+			return dataIterator != dataEndIterator;
+		}
+
+		friend bool operator==(const MatrixForwardIterator& a, const MatrixForwardIterator& b) {
+			return a.dataIterator == b.dataIterator;
+		}
+
+		friend bool operator!=(const MatrixForwardIterator& a, const MatrixForwardIterator& b) {
+			return !(a == b);
+		}
+	};
 
 };

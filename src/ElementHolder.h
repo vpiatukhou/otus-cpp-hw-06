@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseDimension.h"
+#include "MatrixType.h"
 
 namespace Homework {
 
@@ -13,40 +13,42 @@ namespace Homework {
 	template<typename T, T defaultValue>
 	class ElementHolder {
 	private:
-		using ParentDimension = BaseDimension<ElementHolder>;
-
-		ParentDimension& parentDimension; //a dimension which holds this element
+		BaseMatrix& parent; //an 1-dimension matrix which holds this element
 		T value = defaultValue;
 		size_t currentIndex; //an index of the current element in the dimension
 
 	public:
-		ElementHolder(ParentDimension& parentDimension_, size_t currentIndex_) 
-			: parentDimension(parentDimension_), currentIndex(currentIndex_) {
+		ElementHolder(BaseMatrix& parent_, size_t currentIndex_) : parent(parent_), currentIndex(currentIndex_) {
 		}
 
 		ElementHolder(const ElementHolder&) = delete;
-
 		ElementHolder(ElementHolder&&) = delete;
-
 		~ElementHolder() = default;
 
 		ElementHolder& operator=(const ElementHolder&) = delete;
-
 		ElementHolder& operator=(ElementHolder&&) = delete;
 
 		ElementHolder& operator=(T newValue) {
 			value = newValue;
 			if (newValue == defaultValue) {
-				parentDimension.erase(currentIndex);
+				parent.erase(currentIndex);
 			} else {
 				//A new value has been assigned to ElementHolder. Inform the parent dimension about this.
-				parentDimension.addNewElementToData();
+				parent.addNewElementToData();
 			}
 			return *this;
 		}
 
 		operator T() {
 			return value;
+		}
+
+		const T& getValue() const {
+			return value;
+		}
+
+		std::size_t getCurrentIndex() const {
+			return currentIndex;
 		}
 	};
 
