@@ -19,6 +19,13 @@ namespace Homework {
 	 * int e1 = m[3][5][2];	   // e1 = 10
 	 * int e2 = m[3][5][100];  // e2 = -1
 	 * 
+	 * ATTENTION:
+	 *
+	 * Never obtain a reference to the element of the matrix:
+	 *
+	 * int& e1 = m[3][5][2];	// WARNING: undefined behavior
+	 * int& e2 = m[3][5][100];  // e2 = -1
+	 *
 	 * @param T				- a type of an element of the matrix. At the moment only integral types are supported.
 	 * @param defaultValue	- this value will be returned if there is no any element with the given indices
 	 * @param dimensions	- a number of dimensions
@@ -71,7 +78,7 @@ namespace Homework {
 		 */
 		ElementType& operator[](std::size_t index) {
 			if (data.find(index) == data.end()) {
-				//If an element doesn't exist, we create a new one and save it in the variable.
+				//If an element doesn't exist, a new one is created and saved it in the variable.
 				//The element will be added to the matrix later using addNewElementToData().
 				newElement = std::make_unique<ElementType>(this, index);
 				return *newElement;

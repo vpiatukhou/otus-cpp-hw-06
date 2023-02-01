@@ -115,12 +115,11 @@ namespace Homework {
 	};
 
 	/**
-	 * @brief Iterates though all elements of the matrix.
+	 * Iterates though all elements of the matrix.
 	 *
 	 * @tparam ValueType 		- a type of an element of the matrix
 	 * @tparam DataTypeIterator - BaseDimension::DataType::iterator
 	 */
-	 //template<class IteratorValue, class InnerIteratorValue, class DataIterator>
 	template<typename T, T defaultValue>
 	class MatrixForwardIterator<T, defaultValue, 1> {
 	private:
@@ -140,7 +139,7 @@ namespace Homework {
 
 	public:
 		/**
-		 * @brief Fills in two last fields in the given tuple: the value of the element and its last index.
+		 * Fills in two last fields in the given tuple: the value of the element and its last index.
 		 *
 		 * E.g. if matrix[5][3] = 20, the two last elements of the given tuple will contain 3 and 20.
 		 *
