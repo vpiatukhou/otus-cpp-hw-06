@@ -39,6 +39,7 @@ namespace Homework {
 		using DataType = typename DataTypeCreator<T, defaultValue, dimensions>::DataType;
 		using Iterator = MatrixForwardIterator<T, defaultValue, dimensions>;
 
+		//a raw pointer is used to simplify the code. The parent cannot be deleted before the child, the pointer will never have the undefined value.
 		BaseMatrix* parent = nullptr;
 		std::size_t currentIndex = 0;
 
@@ -113,6 +114,7 @@ namespace Homework {
 		using DataType = typename DataTypeCreator<T, defaultValue, 1>::DataType;
 		using Iterator = MatrixForwardIterator<T, defaultValue, 1>;
 
+		//a raw pointer is used to simplify the code. The parent cannot be deleted before the child, the pointer will never have the undefined value.
 		BaseMatrix* parent = nullptr;
 		std::size_t currentIndex = 0;
 
