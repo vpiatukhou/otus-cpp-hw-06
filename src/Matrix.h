@@ -23,8 +23,10 @@ namespace Homework {
 	 *
 	 * Never obtain a reference to the element of the matrix:
 	 *
-	 * int& e1 = m[3][5][2];	// WARNING: undefined behavior
-	 * int& e2 = m[3][5][100];  // e2 = -1
+	 * auto& e1 = m[1][2];
+	 * auto& e2 = m[3][10];
+	 * cout << e1 << endl; // WARNING: undefined behavior
+	 * cout << e2 << endl; // e2 = -1
 	 *
 	 * @param T				- a type of an element of the matrix. At the moment only integral types are supported.
 	 * @param defaultValue	- this value will be returned if there is no any element with the given indices
