@@ -43,7 +43,8 @@ namespace Homework {
 			return value;
 		}
 
-		const T& getValue() const {
+		//T is always an integral type at the moment, so we return it by value
+		T getValue() const {
 			return value;
 		}
 
