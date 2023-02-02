@@ -34,12 +34,14 @@ namespace Homework {
 	 */
 	template<typename T, T defaultValue, std::size_t dimensions = 2>
 	class Matrix : public BaseMatrix {
-	private:
+	public:
 		//an inner matrix with one less number of dimensions.
 		using ElementType = typename DataTypeCreator<T, defaultValue, dimensions>::ElementType;
+		using Iterator = MatrixForwardIterator<T, defaultValue, dimensions>;
+
+	private:
 		//a container which holds the inner matrices
 		using DataType = typename DataTypeCreator<T, defaultValue, dimensions>::DataType;
-		using Iterator = MatrixForwardIterator<T, defaultValue, dimensions>;
 
 		//a raw pointer is used to simplify the code. The parent cannot be deleted before the child, the pointer will never have the undefined value.
 		BaseMatrix* parent = nullptr;
@@ -112,9 +114,12 @@ namespace Homework {
 
 	template<typename T, T defaultValue>
 	class Matrix<T, defaultValue, 1> : public BaseMatrix {
+	public:
 		using ElementType = typename DataTypeCreator<T, defaultValue, 1>::ElementType;
-		using DataType = typename DataTypeCreator<T, defaultValue, 1>::DataType;
 		using Iterator = MatrixForwardIterator<T, defaultValue, 1>;
+
+	private:
+		using DataType = typename DataTypeCreator<T, defaultValue, 1>::DataType;
 
 		//a raw pointer is used to simplify the code. The parent cannot be deleted before the child, the pointer will never have the undefined value.
 		BaseMatrix* parent = nullptr;

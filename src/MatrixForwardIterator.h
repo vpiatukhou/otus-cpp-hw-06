@@ -114,12 +114,6 @@ namespace Homework {
 		}
 	};
 
-	/**
-	 * Iterates though all elements of the matrix.
-	 *
-	 * @tparam ValueType 		- a type of an element of the matrix
-	 * @tparam DataTypeIterator - BaseDimension::DataType::iterator
-	 */
 	template<typename T, T defaultValue>
 	class MatrixForwardIterator<T, defaultValue, 1> {
 	private:
